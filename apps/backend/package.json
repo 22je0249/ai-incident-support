@@ -6,7 +6,7 @@
     "dev": "ts-node-dev --respawn src/local-dev.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "deploy": "serverless deploy",
     "deploy:prod": "serverless deploy --stage prod",
     "invoke:local": "serverless invoke local -f"
