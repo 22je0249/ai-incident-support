@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "../../",
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "ES2022",
+    "baseUrl": ".",
+    "paths": {
+      "@aiops/types": ["../../packages/types/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "../../packages/types/src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}

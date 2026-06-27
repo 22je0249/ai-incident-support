@@ -1,0 +1,138 @@
+{
+  "users": [
+    {
+      "id": "mock-user-id",
+      "githubId": 12345,
+      "username": "mock-sre",
+      "avatarUrl": "https://github.com/identicons/mock-sre.png",
+      "role": "engineer",
+      "createdAt": "2026-06-26T17:38:02.707Z",
+      "updatedAt": "2026-06-26T17:53:13.152Z"
+    }
+  ],
+  "repos": [
+    {
+      "id": "repo-1",
+      "githubId": 88888,
+      "fullName": "acme-corp/api-gateway",
+      "defaultBranch": "main",
+      "language": "TypeScript",
+      "monitored": true,
+      "createdAt": "2026-06-26T17:38:02.707Z",
+      "updatedAt": "2026-06-26T17:38:02.707Z"
+    },
+    {
+      "id": "repo-2",
+      "githubId": 99999,
+      "fullName": "acme-corp/payment-service",
+      "defaultBranch": "master",
+      "language": "Go",
+      "monitored": true,
+      "createdAt": "2026-06-26T17:38:02.707Z",
+      "updatedAt": "2026-06-26T17:38:02.707Z"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "inc-1",
+      "repositoryId": "repo-1",
+      "repositoryName": "acme-corp/api-gateway",
+      "workflowRunId": "999991",
+      "workflowName": "Build & Test",
+      "title": "Build & Test failed on main",
+      "status": "resolved",
+      "severity": "medium",
+      "errorType": "dependency_missing",
+      "rootCause": "Cannot find module '@nestjs/config' or its corresponding type declarations.",
+      "resolution": "Run npm install @nestjs/config --save and push package.json and package-lock.json changes.",
+      "confidence": 95,
+      "riskLevel": "low",
+      "prUrl": "https://github.com/acme-corp/api-gateway/pull/42",
+      "createdAt": "2026-06-23T17:38:02.707Z",
+      "updatedAt": "2026-06-23T17:38:02.707Z",
+      "resolvedAt": "2026-06-23T17:38:02.707Z"
+    },
+    {
+      "id": "inc-2",
+      "repositoryId": "repo-2",
+      "repositoryName": "acme-corp/payment-service",
+      "workflowRunId": "999992",
+      "workflowName": "Docker Build",
+      "title": "Docker Build failed on master",
+      "status": "open",
+      "severity": "high",
+      "errorType": "config_error",
+      "rootCause": "Dockerfile references base image golang:1.21-alpine which failed to pull due to registry rate limit.",
+      "resolution": "Configure registry auth credentials or switch to a local public-mirror base image.",
+      "confidence": 78,
+      "riskLevel": "medium",
+      "createdAt": "2026-06-25T17:38:02.707Z",
+      "updatedAt": "2026-06-25T17:38:02.707Z"
+    },
+    {
+      "id": "inc-3",
+      "repositoryId": "repo-1",
+      "repositoryName": "acme-corp/api-gateway",
+      "workflowRunId": "999993",
+      "workflowName": "Deploy Staging",
+      "title": "Deploy Staging failed on main",
+      "status": "open",
+      "severity": "critical",
+      "errorType": "env_missing",
+      "rootCause": "Database connection string env var DATABASE_URL is not set or empty during server startup.",
+      "resolution": "Add the DATABASE_URL environment variable to the staging environment configuration in AWS Parameter Store.",
+      "confidence": 88,
+      "riskLevel": "high",
+      "createdAt": "2026-06-26T17:38:02.707Z",
+      "updatedAt": "2026-06-26T17:38:02.707Z"
+    },
+    {
+      "id": "7d93b1f5-cdff-4bf7-aa9f-05c9b711b2cc",
+      "repositoryId": "repo-1",
+      "repositoryName": "acme-corp/api-gateway",
+      "workflowRunId": "919844",
+      "workflowName": "CI Pipeline",
+      "title": "CI Pipeline failed on main",
+      "status": "resolved",
+      "severity": "medium",
+      "createdAt": "2026-06-26T17:52:43.035Z",
+      "updatedAt": "2026-06-26T17:53:34.761Z",
+      "rawLogsS3Key": "logs/2026-06-26/7d93b1f5-cdff-4bf7-aa9f-05c9b711b2cc.txt",
+      "aiDiagnosis": {
+        "rootCause": "Mock diagnosis: A simulated error pattern was detected in the logs.",
+        "resolution": "Check dependencies in package.json and ensure all modules are properly installed using 'npm install'.",
+        "fixDiff": "diff --git a/package.json b/package.json\nindex 123456..789012 100644\n--- a/package.json\n+++ b/package.json\n@@ -10,2 +10,3 @@\n     \"express\": \"^4.19.2\",\n+    \"lodash\": \"^4.17.21\"\n   }",
+        "confidence": 64.5,
+        "riskLevel": "low",
+        "errorType": "dependency_missing",
+        "reasoning": "Simulated SRE confidence calculation based on mock parameters.",
+        "similarIncidents": []
+      },
+      "confidence": 64.5,
+      "riskLevel": "low",
+      "rootCause": "Mock diagnosis: A simulated error pattern was detected in the logs.",
+      "errorType": "dependency_missing",
+      "resolution": "Check dependencies in package.json and ensure all modules are properly installed using 'npm install'.",
+      "resolvedAt": "2026-06-26T17:53:34.761Z"
+    }
+  ],
+  "knowledge": [
+    {
+      "id": "kb-1",
+      "incidentId": "inc-1",
+      "title": "Missing NestJS Config dependency",
+      "rootCause": "Cannot find module '@nestjs/config'",
+      "resolution": "Run npm install @nestjs/config --save",
+      "technology": [
+        "nestjs",
+        "npm",
+        "typescript"
+      ],
+      "errorPattern": "Cannot find module",
+      "verified": true,
+      "successCount": 3,
+      "createdAt": "2026-06-26T17:38:02.707Z"
+    }
+  ],
+  "feedback": []
+}
