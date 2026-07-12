@@ -2,7 +2,7 @@ service: ai-incident-platform
 frameworkVersion: "3"
 
 plugins:
-  - serverless-plugin-typescript
+  - serverless-esbuild
   - serverless-offline
 
 custom:
@@ -19,6 +19,15 @@ custom:
   serverless-offline:
     httpPort: 3001
     lambdaPort: 3002
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: false
+    target: node20
+    platform: node
+    concurrency: 10
+    exclude:
+      - '@aws-sdk/*'
 
 provider:
   name: aws

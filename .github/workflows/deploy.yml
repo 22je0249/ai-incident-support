@@ -32,13 +32,10 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build shared types
         run: npm run build --workspace=packages/types
-
-      - name: Link node_modules into backend (monorepo workspace fix)
-        run: ln -sf $(pwd)/node_modules apps/backend/node_modules
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -86,7 +83,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build frontend
         run: npm run build --workspace=apps/frontend
