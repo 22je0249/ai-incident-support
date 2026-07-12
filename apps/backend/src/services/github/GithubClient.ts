@@ -1,5 +1,6 @@
 import { App } from "@octokit/app";
 import { Octokit } from "@octokit/rest";
+import { createAppAuth } from "@octokit/auth-app";
 
 let appInstance: App | null = null;
 
@@ -17,9 +18,16 @@ export async function getInstallationClient(installationId: number): Promise<Oct
   if (process.env.MOCK_DB === "true" || !process.env.GITHUB_APP_ID) {
     return {} as unknown as Octokit;
   }
-  const app = getApp();
-  const octokit = await app.getInstallationOctokit(installationId);
-  return octokit as unknown as Octokit;
+  // Create a proper @octokit/rest Octokit with installation auth
+  const octokit = new Octokit({
+    authStrategy: createAppAuth,
+    auth: {
+      appId: process.env.GITHUB_APP_ID!,
+      privateKey: (process.env.GITHUB_APP_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
+      installationId,
+    },
+  });
+  return octokit;
 }
 
 export async function getRepoClient(
@@ -58,16 +66,25 @@ export async function getRepoClient(
   let installationCount = 0;
   const triedInstallations: string[] = [];
 
-  for await (const { installation, octokit } of app.eachInstallation.iterator()) {
+  for await (const { installation } of app.eachInstallation.iterator()) {
     installationCount++;
     const accountLogin = (installation as any).account?.login || "";
     triedInstallations.push(`installation #${installation.id} (account: ${accountLogin})`);
 
-    // Match by account owner name instead of probing repos.get()
-    // This works even when the app has repo-scoped access
+    // Match by account owner name
     if (accountLogin.toLowerCase() === owner.toLowerCase()) {
-      console.log(`[GithubClient] Found installation #${installation.id} for owner ${owner} — using for ${owner}/${repo}`);
-      return octokit as unknown as Octokit;
+      console.log(`[GithubClient] Found installation #${installation.id} for owner ${owner} — creating REST client for ${owner}/${repo}`);
+      // Create a proper @octokit/rest Octokit with installation auth
+      // This gives us full .rest.actions, .rest.repos, etc.
+      const octokit = new Octokit({
+        authStrategy: createAppAuth,
+        auth: {
+          appId: process.env.GITHUB_APP_ID!,
+          privateKey: (process.env.GITHUB_APP_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
+          installationId: installation.id,
+        },
+      });
+      return octokit;
     }
   }
 
