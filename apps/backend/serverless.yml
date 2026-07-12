@@ -44,7 +44,7 @@ provider:
     # Groq AI
     GROQ_API_KEY: ${env:GROQ_API_KEY, ''}
     GROQ_MODEL: llama-3.3-70b-versatile
-    GROQ_EMBED_MODEL: nomic-embed-text-v1_5
+    GROQ_EMBED_MODEL: nomic-embed-text-v1.5
     # Supabase
     SUPABASE_URL: ${env:SUPABASE_URL, ''}
     SUPABASE_KEY: ${env:SUPABASE_KEY, ''}
