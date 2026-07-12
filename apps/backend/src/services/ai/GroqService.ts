@@ -3,7 +3,6 @@ import Groq from "groq-sdk";
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "dummy-key-for-local-dev" });
 
 const LLM_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-const EMBED_MODEL = process.env.GROQ_EMBED_MODEL || "nomic-embed-text-v1_5";
 
 export interface DiagnosisResult {
   rootCause: string;
@@ -102,15 +101,11 @@ ${truncatedLogs}
 }
 
 export async function embedText(text: string): Promise<number[]> {
-  if (process.env.MOCK_DB === "true" || !process.env.GROQ_API_KEY) {
-    return new Array(768).fill(0).map(() => Math.random());
-  }
-  // Groq embeddings endpoint
-  const response = await groq.embeddings.create({
-    model: EMBED_MODEL,
-    input: text.slice(0, 4096), // nomic-embed max tokens
-  });
-  return response.data[0].embedding as number[];
+  // Groq does not currently support embedding endpoints.
+  // Return a zero vector so the pipeline continues gracefully
+  // (vector search will find no matches, which is safe).
+  console.warn("[GroqService] Embeddings not supported by Groq — skipping vector embedding");
+  return new Array(768).fill(0);
 }
 
 export async function generateFix(

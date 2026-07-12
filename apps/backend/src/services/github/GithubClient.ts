@@ -55,14 +55,26 @@ export async function getRepoClient(
   }
 
   const app = getApp();
+  let installationCount = 0;
+  const triedInstallations: string[] = [];
+
   for await (const { installation, octokit } of app.eachInstallation.iterator()) {
+    installationCount++;
+    triedInstallations.push(`installation #${installation.id} (account: ${(installation as any).account?.login || "unknown"})`);
     try {
       await (octokit as unknown as Octokit).rest.repos.get({ owner, repo });
+      console.log(`[GithubClient] Found installation #${installation.id} for ${owner}/${repo}`);
       return octokit as unknown as Octokit;
     } catch {
       // Not this installation
     }
   }
+
+  console.error(
+    `[GithubClient] No installation found for ${owner}/${repo}. ` +
+    `Checked ${installationCount} installation(s): [${triedInstallations.join(", ")}]. ` +
+    `Ensure the GitHub App (ID: ${process.env.GITHUB_APP_ID}) is installed on the ${owner}/${repo} repository.`
+  );
   throw new Error(`No installation found for ${owner}/${repo}`);
 }
 

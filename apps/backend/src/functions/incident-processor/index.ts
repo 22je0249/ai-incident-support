@@ -63,7 +63,21 @@ export const handler = async (event: SQSEvent): Promise<SQSBatchResponse> => {
           );
         }
       } catch (logErr) {
-        console.warn("[IncidentProcessor] Log download failed, using empty logs:", logErr);
+        console.warn("[IncidentProcessor] Log download failed, using incident metadata as context:", logErr);
+        // Build a context string from the incident metadata so the LLM has something useful
+        rawLogs = [
+          `CI/CD FAILURE CONTEXT (logs unavailable — using incident metadata):`,
+          `Repository: ${repo.fullName}`,
+          `Workflow: ${incident.workflowName || "Unknown"}`,
+          `Branch: ${incident.title || "Unknown"}`,
+          `Language: ${repo.language || "Unknown"}`,
+          `Severity: ${incident.severity || "medium"}`,
+          `Timestamp: ${incident.createdAt || new Date().toISOString()}`,
+          `Workflow Run ID: ${incident.workflowRunId}`,
+          ``,
+          `Note: The actual workflow logs could not be downloaded. Please analyze the failure based on the`,
+          `workflow name, branch, and repository context above. Provide your best diagnosis and resolution.`,
+        ].join("\n");
       }
 
       // ── Update incident with log reference ────────────────────────────
