@@ -2,7 +2,11 @@ import { Github, Zap, Brain, Shield } from "lucide-react";
 
 export default function LoginPage() {
   const handleGithubLogin = () => {
-    window.location.href = "/auth/github";
+    const apiUrl = import.meta.env.VITE_API_URL || "";
+    const targetUrl = apiUrl
+      ? apiUrl.replace(/\/api$/, "/auth/github")
+      : "http://localhost:3001/auth/github";
+    window.location.href = targetUrl;
   };
 
   return (
