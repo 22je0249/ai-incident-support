@@ -7,7 +7,7 @@
     "target": "ES2022",
     "baseUrl": ".",
     "paths": {
-      "@aiops/types": ["../../packages/types/src/index.ts"]
+      "@aiops/types": ["../../packages/types/dist/index"]
     }
   },
   "include": ["src/**/*"],
