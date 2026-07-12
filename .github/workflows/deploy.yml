@@ -97,4 +97,5 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: apps/frontend
+          vercel-version: latest
           vercel-args: ${{ env.STAGE == 'prod' && '--prod' || '' }}
