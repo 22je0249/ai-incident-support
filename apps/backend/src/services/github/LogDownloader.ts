@@ -95,6 +95,12 @@ export async function getFailedJobLogs(
 
   for (const job of failedJobs.slice(0, 2)) {
     // Limit to first 2 failed jobs
+    // Add step-level annotations for better AI context
+    const failedSteps = (job as any).steps
+      ?.filter((s: any) => s.conclusion === "failure")
+      ?.map((s: any) => `  Step "${s.name}": ${s.conclusion} (status: ${s.status})`)
+      ?.join("\n") || "  No step details available";
+
     try {
       const { data: jobLogs } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
         owner,
@@ -102,9 +108,26 @@ export async function getFailedJobLogs(
         job_id: job.id,
       });
 
-      logParts.push(`=== Job: ${job.name} ===\n${stripAnsi(jobLogs as unknown as string)}`);
+      // GitHub API returns log data as ArrayBuffer, string, or ReadableStream
+      // We need to convert it to a proper string
+      let logText: string;
+      if (typeof jobLogs === "string") {
+        logText = jobLogs;
+      } else if (jobLogs instanceof ArrayBuffer || ArrayBuffer.isView(jobLogs)) {
+        logText = new TextDecoder("utf-8").decode(jobLogs as ArrayBuffer);
+      } else if (typeof jobLogs === "object" && jobLogs !== null) {
+        // Could be a Buffer or other object-like
+        logText = String(jobLogs);
+      } else {
+        logText = String(jobLogs);
+      }
+
+      const cleanLog = stripAnsi(logText);
+      console.log(`[LogDownloader] Downloaded ${cleanLog.length} chars of logs for job: ${job.name}`);
+
+      logParts.push(`=== Job: ${job.name} (conclusion: ${job.conclusion}) ===\nFailed Steps:\n${failedSteps}\n\n--- Logs ---\n${cleanLog}`);
     } catch (err) {
-      logParts.push(`=== Job: ${job.name} ===\nFailed to retrieve logs: ${err}`);
+      logParts.push(`=== Job: ${job.name} (conclusion: ${job.conclusion}) ===\nFailed Steps:\n${failedSteps}\n\nFailed to retrieve logs: ${err}`);
     }
   }
 

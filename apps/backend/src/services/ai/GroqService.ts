@@ -71,6 +71,7 @@ index 123456..789012 100644
     : "";
 
   const truncatedLogs = logs.slice(0, 7000); // stay well within token limits
+  console.log(`[GroqService] Sending ${truncatedLogs.length} chars of logs to LLM. Preview: ${truncatedLogs.slice(0, 500).replace(/\n/g, '\\n')}`);
 
   const userMessage = `Please diagnose this CI/CD failure:${repoBlock}${contextBlock}
 
