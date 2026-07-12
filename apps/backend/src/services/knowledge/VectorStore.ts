@@ -1,6 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { KnowledgeEntry } from "@aiops/types";
 
+// Supabase JS v2 always initializes a Realtime client which expects WebSocket.
+// In Node 20 environment (AWS Lambda), WebSocket is not globally defined, which crashes the initialization.
+// We define a dummy class since we only use Supabase REST/Database features, not Realtime.
+if (typeof globalThis.WebSocket === "undefined") {
+  (globalThis as any).WebSocket = class {};
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL || "https://dummy.supabase.co",
   process.env.SUPABASE_KEY || "dummy-key"
