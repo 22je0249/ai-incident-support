@@ -60,20 +60,21 @@ export async function getRepoClient(
 
   for await (const { installation, octokit } of app.eachInstallation.iterator()) {
     installationCount++;
-    triedInstallations.push(`installation #${installation.id} (account: ${(installation as any).account?.login || "unknown"})`);
-    try {
-      await (octokit as unknown as Octokit).rest.repos.get({ owner, repo });
-      console.log(`[GithubClient] Found installation #${installation.id} for ${owner}/${repo}`);
+    const accountLogin = (installation as any).account?.login || "";
+    triedInstallations.push(`installation #${installation.id} (account: ${accountLogin})`);
+
+    // Match by account owner name instead of probing repos.get()
+    // This works even when the app has repo-scoped access
+    if (accountLogin.toLowerCase() === owner.toLowerCase()) {
+      console.log(`[GithubClient] Found installation #${installation.id} for owner ${owner} — using for ${owner}/${repo}`);
       return octokit as unknown as Octokit;
-    } catch {
-      // Not this installation
     }
   }
 
   console.error(
     `[GithubClient] No installation found for ${owner}/${repo}. ` +
     `Checked ${installationCount} installation(s): [${triedInstallations.join(", ")}]. ` +
-    `Ensure the GitHub App (ID: ${process.env.GITHUB_APP_ID}) is installed on the ${owner}/${repo} repository.`
+    `Ensure the GitHub App (ID: ${process.env.GITHUB_APP_ID}) is installed on the ${owner} account.`
   );
   throw new Error(`No installation found for ${owner}/${repo}`);
 }
