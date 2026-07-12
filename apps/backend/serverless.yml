@@ -93,6 +93,7 @@ provider:
             - !Sub "${ReposTable.Arn}/index/*"
             - !GetAtt KnowledgeTable.Arn
             - !GetAtt UsersTable.Arn
+            - !Sub "${UsersTable.Arn}/index/*"
             - !GetAtt FeedbackTable.Arn
         - Effect: Allow
           Action:
