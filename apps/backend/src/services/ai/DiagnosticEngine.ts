@@ -109,7 +109,7 @@ export async function runDiagnosticPipeline(
     updatedAt: new Date().toISOString(),
   });
 
-  const shouldAutoFix = isAutoFixEligible(confidence, riskLevel);
+  const shouldAutoFix = isAutoFixEligible(confidence, riskLevel, diagnosis.errorType);
 
   console.log(
     `[DiagnosticEngine] Complete — confidence: ${confidence}%, risk: ${riskLevel}, autoFix: ${shouldAutoFix}`

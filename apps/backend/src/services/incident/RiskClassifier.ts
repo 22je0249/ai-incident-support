@@ -100,7 +100,13 @@ export function getRiskAdjustment(risk: RiskLevel): number {
 export function isAutoFixEligible(
   confidence: number,
   risk: RiskLevel,
+  errorType?: string,
   threshold = Number(process.env.AI_CONFIDENCE_THRESHOLD || 85)
 ): boolean {
-  return confidence >= threshold && risk === "low";
+  // Safe, deterministic errors can be auto-fixed at a lower threshold
+  const targetThreshold = (errorType === "syntax_error" || errorType === "dependency_missing")
+    ? Math.min(60, threshold)
+    : threshold;
+
+  return confidence >= targetThreshold && risk === "low";
 }
