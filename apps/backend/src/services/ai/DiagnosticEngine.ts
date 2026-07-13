@@ -37,8 +37,8 @@ export async function runDiagnosticPipeline(
     truncatedLogs = `${rawLogs.slice(0, keepStart)}\n\n... [TRUNCATED ${rawLogs.length - maxLogLength} CHARS] ...\n\n${rawLogs.slice(-keepEnd)}`;
   }
 
-  // Step 1: Embed the actual error context (end of truncated logs) for similarity search
-  const logSummary = truncatedLogs.slice(-4000);
+  // Step 1: Embed the actual error context (traceback lines) for similarity search
+  const logSummary = extractErrorContext(truncatedLogs);
   let queryEmbedding: number[] = [];
   let similarResults: Awaited<ReturnType<typeof searchSimilar>> = [];
   let similarityScore = 50; // default if no history
@@ -128,4 +128,43 @@ export async function runDiagnosticPipeline(
   );
 
   return { aiDiagnosis, confidence, riskLevel, shouldAutoFix };
+}
+
+function extractErrorContext(logs: string): string {
+  const lines = logs.split("\n");
+  const errorLines: string[] = [];
+  let inTraceback = false;
+
+  for (const line of lines) {
+    if (
+      line.includes("Traceback (most recent call last):") ||
+      line.includes("AssertionError:") ||
+      line.includes("Error:") ||
+      line.includes("Exception:") ||
+      line.includes("FAIL:") ||
+      line.includes("FAILED ")
+    ) {
+      inTraceback = true;
+    }
+
+    if (inTraceback) {
+      errorLines.push(line);
+    }
+
+    if (
+      inTraceback &&
+      (line.includes("Post job cleanup") ||
+        line.includes("Cleaning up orphan processes") ||
+        line.includes("##[endgroup]") ||
+        line.includes("post-run"))
+    ) {
+      inTraceback = false;
+    }
+  }
+
+  if (errorLines.length === 0) {
+    return logs.slice(-2000);
+  }
+
+  return errorLines.join("\n");
 }
