@@ -20,7 +20,8 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
     Tables.INCIDENTS,
     "#s = :status AND attribute_not_exists(embeddedAt)",
     { ":status": "resolved" },
-    100
+    100,
+    { "#s": "status" }
   );
 
   console.log(`[LearningJob] Found ${resolvedIncidents.length} resolved incidents to embed`);

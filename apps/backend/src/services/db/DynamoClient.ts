@@ -279,7 +279,8 @@ export async function dbScan<T>(
   table: string,
   filterExpression?: string,
   expressionValues?: Record<string, unknown>,
-  limit?: number
+  limit?: number,
+  expressionNames?: Record<string, string>
 ): Promise<T[]> {
   if (useMock) {
     const db = readMockDb();
@@ -296,6 +297,7 @@ export async function dbScan<T>(
       TableName: table,
       FilterExpression: filterExpression,
       ExpressionAttributeValues: expressionValues,
+      ExpressionAttributeNames: expressionNames,
       Limit: limit,
     })
   );
