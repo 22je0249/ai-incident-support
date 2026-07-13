@@ -70,8 +70,16 @@ index 123456..789012 100644
     ? `\n\n## Repository Context:\n- Name: ${repoContext.name}\n- Language: ${repoContext.language || "Unknown"}\n- Branch: ${repoContext.branch}`
     : "";
 
-  const truncatedLogs = logs.slice(0, 7000); // stay well within token limits
-  console.log(`[GroqService] Sending ${truncatedLogs.length} chars of logs to LLM. Preview: ${truncatedLogs.slice(0, 500).replace(/\n/g, '\\n')}`);
+  // Truncate logs keeping both the start (setup context) and the end (where errors happen)
+  let truncatedLogs = logs;
+  const maxLogLength = 8000;
+  if (logs.length > maxLogLength) {
+    const keepStart = 1500;
+    const keepEnd = maxLogLength - keepStart - 100;
+    truncatedLogs = `${logs.slice(0, keepStart)}\n\n... [TRUNCATED ${logs.length - maxLogLength} CHARS] ...\n\n${logs.slice(-keepEnd)}`;
+  }
+  
+  console.log(`[GroqService] Sending ${truncatedLogs.length} chars of logs to LLM. (Original size: ${logs.length})`);
 
   const userMessage = `Please diagnose this CI/CD failure:${repoBlock}${contextBlock}
 
