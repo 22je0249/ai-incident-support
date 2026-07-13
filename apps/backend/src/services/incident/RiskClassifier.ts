@@ -38,6 +38,10 @@ const LOW_RISK_PATTERNS = [
   /README/i,
   /\.md$/i,
   /\.txt$/i,
+  /\.py$/i,
+  /\.js$/i,
+  /\.ts$/i,
+  /\.go$/i,
   /test\//i,
   /spec\//i,
   /docs\//i,
@@ -103,10 +107,21 @@ export function isAutoFixEligible(
   errorType?: string,
   threshold = Number(process.env.AI_CONFIDENCE_THRESHOLD || 85)
 ): boolean {
-  // Safe, deterministic errors can be auto-fixed at a lower threshold
-  const targetThreshold = (errorType === "syntax_error" || errorType === "dependency_missing")
+  // Safe, deterministic errors can be auto-fixed at a lower threshold of 60%
+  const isSafeError = [
+    "syntax_error",
+    "dependency_missing",
+    "config_error",
+    "build_error",
+    "env_missing"
+  ].includes(errorType || "");
+
+  const targetThreshold = isSafeError
     ? Math.min(60, threshold)
     : threshold;
 
-  return confidence >= targetThreshold && risk === "low";
+  // For safe errors, we also accept medium risk if the change is in a source file
+  const isRiskAccepted = risk === "low" || (isSafeError && risk === "medium");
+
+  return confidence >= targetThreshold && isRiskAccepted;
 }
