@@ -33,6 +33,8 @@ export const incidentsApi = {
   get: (id: string) => api.get(`/incidents/${id}`).then((r) => r.data),
   update: (id: string, data: Record<string, unknown>) =>
     api.patch(`/incidents/${id}`, data).then((r) => r.data),
+  approveFix: (id: string) =>
+    api.post(`/incidents/${id}/approve-fix`).then((r) => r.data),
 };
 
 export const repositoriesApi = {

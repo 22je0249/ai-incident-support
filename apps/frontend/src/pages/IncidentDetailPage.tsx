@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Brain, AlertTriangle, GitPullRequest, CheckCircle,
-  XCircle, ExternalLink, Clock, Code2, Lightbulb, Shield
+  XCircle, ExternalLink, Clock, Code2, Lightbulb, Shield, Loader2
 } from "lucide-react";
 import { incidentsApi } from "../api/client";
 import { Incident, AIDiagnosis } from "@aiops/types";
@@ -51,10 +52,24 @@ export default function IncidentDetailPage() {
     refetchInterval: 15_000,
   });
 
+  const [approveError, setApproveError] = useState<string | null>(null);
+
   const resolveMutation = useMutation({
     mutationFn: (data: { status: string; resolution?: string }) =>
       incidentsApi.update(id!, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["incident", id] }),
+  });
+
+  const approveFixMutation = useMutation({
+    mutationFn: () => incidentsApi.approveFix(id!),
+    onSuccess: (result) => {
+      setApproveError(null);
+      queryClient.invalidateQueries({ queryKey: ["incident", id] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error || err?.message || "Failed to create PR";
+      setApproveError(msg);
+    },
   });
 
   const incident: Incident | undefined = data?.data;
@@ -246,22 +261,29 @@ export default function IncidentDetailPage() {
                 <button
                   className="btn btn-success w-full justify-center"
                   id="approve-fix-btn"
-                  onClick={() =>
-                    resolveMutation.mutate({
-                      status: "resolved",
-                      resolution: diagnosis?.resolution,
-                    })
-                  }
-                  disabled={resolveMutation.isPending}
+                  onClick={() => {
+                    setApproveError(null);
+                    approveFixMutation.mutate();
+                  }}
+                  disabled={approveFixMutation.isPending || resolveMutation.isPending}
                 >
-                  <CheckCircle className="w-4 h-4" />
-                  Approve AI Fix
+                  {approveFixMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
+                  {approveFixMutation.isPending ? "Creating PR…" : "Approve AI Fix"}
                 </button>
+                {approveError && (
+                  <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                    <strong>Error:</strong> {approveError}
+                  </div>
+                )}
                 <button
                   className="btn btn-secondary w-full justify-center"
                   id="reject-fix-btn"
                   onClick={() => resolveMutation.mutate({ status: "rejected" })}
-                  disabled={resolveMutation.isPending}
+                  disabled={resolveMutation.isPending || approveFixMutation.isPending}
                 >
                   <XCircle className="w-4 h-4" />
                   Reject & Resolve Manually

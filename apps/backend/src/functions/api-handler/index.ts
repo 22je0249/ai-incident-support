@@ -178,6 +178,87 @@ app.patch("/api/incidents/:id", authMiddleware, async (req: Request, res: Respon
   }
 });
 
+// ─── Approve AI Fix & Create PR ───────────────────────────────────────────────
+
+app.post("/api/incidents/:id/approve-fix", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const incidentId = req.params.id;
+
+    // 1. Load the incident
+    const incident = await dbGet<Incident>(Tables.INCIDENTS, { id: incidentId });
+    if (!incident) {
+      return res.status(404).json({ success: false, error: "Incident not found" });
+    }
+
+    const diagnosis = incident.aiDiagnosis;
+    if (!diagnosis) {
+      return res.status(400).json({ success: false, error: "No AI diagnosis available for this incident" });
+    }
+
+    if (!diagnosis.fixDiff || diagnosis.fixDiff.trim().length < 10) {
+      // No fixDiff available — just resolve the incident without creating a PR
+      await dbUpdate(Tables.INCIDENTS, { id: incidentId }, {
+        status: "resolved",
+        resolution: diagnosis.resolution,
+        resolvedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      return res.json({
+        success: true,
+        message: "Incident resolved (no code fix diff available to create PR)",
+        prCreated: false,
+      });
+    }
+
+    // 2. Load the repository
+    const repo = await dbGet<any>(Tables.REPOS, { id: incident.repositoryId });
+    if (!repo) {
+      return res.status(404).json({ success: false, error: "Repository not found" });
+    }
+
+    // 3. Create the fix PR
+    const { createFixPR } = require("../../services/github/PullRequestCreator");
+    const prResult = await createFixPR(repo.fullName, incidentId, diagnosis, diagnosis.fixDiff);
+
+    if (!prResult) {
+      // PR creation was skipped (e.g. mock mode returned null or invalid diff)
+      await dbUpdate(Tables.INCIDENTS, { id: incidentId }, {
+        status: "resolved",
+        resolution: diagnosis.resolution,
+        resolvedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      return res.json({
+        success: true,
+        message: "Incident resolved (PR creation skipped)",
+        prCreated: false,
+      });
+    }
+
+    // 4. Update incident with PR info
+    await dbUpdate(Tables.INCIDENTS, { id: incidentId }, {
+      status: "pr_created",
+      prUrl: prResult.prUrl,
+      resolution: diagnosis.resolution,
+      updatedAt: new Date().toISOString(),
+    });
+
+    console.log(`[API] PR created for incident ${incidentId}: ${prResult.prUrl}`);
+
+    return res.json({
+      success: true,
+      message: "Fix PR created successfully",
+      prCreated: true,
+      prUrl: prResult.prUrl,
+      prNumber: prResult.prNumber,
+      branchName: prResult.branchName,
+    });
+  } catch (err) {
+    console.error(`[API] Approve-fix failed for incident ${req.params.id}:`, err);
+    res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
 // ─── Repositories ─────────────────────────────────────────────────────────────
 
 app.get("/api/repositories", authMiddleware, async (_req: Request, res: Response) => {
