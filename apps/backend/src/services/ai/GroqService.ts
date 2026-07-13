@@ -110,11 +110,43 @@ ${truncatedLogs}
 }
 
 export async function embedText(text: string): Promise<number[]> {
-  // Groq does not currently support embedding endpoints.
-  // Return a zero vector so the pipeline continues gracefully
-  // (vector search will find no matches, which is safe).
-  console.warn("[GroqService] Embeddings not supported by Groq — skipping vector embedding");
-  return new Array(768).fill(0);
+  const vector = new Array(768).fill(0);
+  
+  // Clean the text and split into words
+  const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter(Boolean);
+  
+  if (words.length === 0) {
+    vector[0] = 1;
+    return vector;
+  }
+
+  // Hash each word deterministically into the 768-dimensional space
+  for (const word of words) {
+    let hash = 0;
+    for (let i = 0; i < word.length; i++) {
+      hash = (hash << 5) - hash + word.charCodeAt(i);
+      hash |= 0;
+    }
+    const index = Math.abs(hash) % 768;
+    vector[index] += 1;
+  }
+
+  // Normalize the vector to avoid division by zero and optimize cosine similarity
+  let magnitude = 0;
+  for (let i = 0; i < 768; i++) {
+    magnitude += vector[i] * vector[i];
+  }
+  magnitude = Math.sqrt(magnitude);
+
+  if (magnitude > 0) {
+    for (let i = 0; i < 768; i++) {
+      vector[i] /= magnitude;
+    }
+  } else {
+    vector[0] = 1;
+  }
+
+  return vector;
 }
 
 export async function generateFix(
