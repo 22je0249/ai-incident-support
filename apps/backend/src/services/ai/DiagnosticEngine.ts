@@ -45,11 +45,14 @@ export async function runDiagnosticPipeline(
 
   try {
     queryEmbedding = await embedText(logSummary);
-    similarResults = await searchSimilar(queryEmbedding, 0.4, 5); // Use a threshold of 0.4 for shingle hash matching
+    similarResults = await searchSimilar(queryEmbedding, 0.25, 5); // Lowered threshold to 0.25 to catch shingle hashing similarities
 
     if (similarResults.length > 0) {
-      similarityScore = Math.round(similarResults[0].similarity * 100);
-      console.log(`[DiagnosticEngine] Found ${similarResults.length} similar incidents (top: ${similarityScore}%)`);
+      const rawSim = similarResults[0].similarity;
+      // Map raw similarity [0.25, 1.0] onto [80, 100] score range to reflect high relevance of known past case
+      similarityScore = Math.round(80 + ((rawSim - 0.25) / 0.75) * 20);
+      similarityScore = Math.min(100, Math.max(80, similarityScore));
+      console.log(`[DiagnosticEngine] Found ${similarResults.length} similar incidents (raw similarity: ${Math.round(rawSim * 100)}%, scaled score: ${similarityScore}%)`);
     }
   } catch (err) {
     console.warn("[DiagnosticEngine] Vector search failed, continuing without context:", err);
