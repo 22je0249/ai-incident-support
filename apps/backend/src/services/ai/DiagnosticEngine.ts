@@ -48,7 +48,8 @@ export async function runDiagnosticPipeline(
     queryEmbedding = await embedText(logSummary);
     console.log(`[DiagnosticEngine] Generated query embedding length: ${queryEmbedding.length}, first 5 elements: [${queryEmbedding.slice(0, 5).join(", ")}]`);
     similarResults = await searchSimilar(queryEmbedding, 0.15, 5); // Lowered threshold to 0.15 to catch shingle hashing similarities
-    console.log(`[DiagnosticEngine] searchSimilar returned ${similarResults.length} matches`);
+    similarResults = similarResults.filter((r) => !isNaN(r.similarity) && r.similarity !== null);
+    console.log(`[DiagnosticEngine] searchSimilar returned ${similarResults.length} matches (filtered NaN)`);
 
     if (similarResults.length > 0) {
       const rawSim = similarResults[0].similarity;
