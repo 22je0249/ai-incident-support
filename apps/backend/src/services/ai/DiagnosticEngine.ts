@@ -39,13 +39,16 @@ export async function runDiagnosticPipeline(
 
   // Step 1: Embed the actual error context (traceback lines) for similarity search
   const logSummary = extractErrorContext(truncatedLogs);
+  console.log(`[DiagnosticEngine] Log Summary for embedding (first 100 chars): "${logSummary.slice(0, 100)}..."`);
   let queryEmbedding: number[] = [];
   let similarResults: Awaited<ReturnType<typeof searchSimilar>> = [];
   let similarityScore = 50; // default if no history
 
   try {
     queryEmbedding = await embedText(logSummary);
+    console.log(`[DiagnosticEngine] Generated query embedding length: ${queryEmbedding.length}, first 5 elements: [${queryEmbedding.slice(0, 5).join(", ")}]`);
     similarResults = await searchSimilar(queryEmbedding, 0.15, 5); // Lowered threshold to 0.15 to catch shingle hashing similarities
+    console.log(`[DiagnosticEngine] searchSimilar returned ${similarResults.length} matches`);
 
     if (similarResults.length > 0) {
       const rawSim = similarResults[0].similarity;
