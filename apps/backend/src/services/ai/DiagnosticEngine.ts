@@ -28,15 +28,24 @@ export async function runDiagnosticPipeline(
 
   console.log(`[DiagnosticEngine] Starting pipeline for incident: ${incidentId}`);
 
-  // Step 1: Embed the log content for similarity search
-  const logSummary = rawLogs.slice(0, 2000); // embed a summary
+  // Truncate logs keeping both the start (setup context) and the end (where errors happen)
+  let truncatedLogs = rawLogs;
+  const maxLogLength = 8000;
+  if (rawLogs.length > maxLogLength) {
+    const keepStart = 1500;
+    const keepEnd = maxLogLength - keepStart - 100;
+    truncatedLogs = `${rawLogs.slice(0, keepStart)}\n\n... [TRUNCATED ${rawLogs.length - maxLogLength} CHARS] ...\n\n${rawLogs.slice(-keepEnd)}`;
+  }
+
+  // Step 1: Embed the actual error context (end of truncated logs) for similarity search
+  const logSummary = truncatedLogs.slice(-2000);
   let queryEmbedding: number[] = [];
   let similarResults: Awaited<ReturnType<typeof searchSimilar>> = [];
   let similarityScore = 50; // default if no history
 
   try {
     queryEmbedding = await embedText(logSummary);
-    similarResults = await searchSimilar(queryEmbedding, 0.6, 5);
+    similarResults = await searchSimilar(queryEmbedding, 0.4, 5); // Use a threshold of 0.4 for shingle hash matching
 
     if (similarResults.length > 0) {
       similarityScore = Math.round(similarResults[0].similarity * 100);
@@ -53,7 +62,7 @@ export async function runDiagnosticPipeline(
   );
 
   // Step 3: Run Groq LLM diagnosis with RAG context
-  const diagnosis = await diagnoseIncident(rawLogs, similarCases, {
+  const diagnosis = await diagnoseIncident(truncatedLogs, similarCases, {
     name: repositoryName,
     language,
     branch,
