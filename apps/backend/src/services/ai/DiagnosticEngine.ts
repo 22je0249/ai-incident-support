@@ -38,7 +38,7 @@ export async function runDiagnosticPipeline(
   }
 
   // Step 1: Embed the actual error context (end of truncated logs) for similarity search
-  const logSummary = truncatedLogs.slice(-2000);
+  const logSummary = truncatedLogs.slice(-4000);
   let queryEmbedding: number[] = [];
   let similarResults: Awaited<ReturnType<typeof searchSimilar>> = [];
   let similarityScore = 50; // default if no history
