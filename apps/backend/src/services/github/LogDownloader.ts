@@ -193,35 +193,101 @@ export async function getFailedJobLogs(
       ?.join("\n") || "  No step details available";
 
     try {
-      const { data: jobLogs } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
-        owner,
-        repo,
-        job_id: job.id,
-      });
+      // ── Approach 1: Use octokit.request to get the raw redirect URL ────
+      // GitHub's job log endpoint returns 302 -> presigned S3 URL with plain text.
+      // We manually follow the redirect with fetch() to get actual text content.
+      let logText = "";
 
-      // GitHub API returns log data as ArrayBuffer, Buffer, or string.
-      // The job-level log endpoint typically returns plain text (not zipped),
-      // but we handle all formats robustly.
-      const rawBuffer = responseDataToBuffer(jobLogs);
-      console.log(`[LogDownloader] downloadJobLogsForWorkflowRun returned ${rawBuffer.length} bytes for job: ${job.name} (type: ${typeof jobLogs})`);
+      try {
+        const response = await (octokit as any).request(
+          "GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs",
+          {
+            owner,
+            repo,
+            job_id: job.id,
+            request: {
+              redirect: "manual",
+            },
+          }
+        );
 
-      // Check if it's a zip or plain text
-      let logText: string;
-      if (rawBuffer.length >= 4 && rawBuffer[0] === 0x50 && rawBuffer[1] === 0x4b) {
-        // It's a zip archive
-        logText = extractTextFromZip(rawBuffer);
-      } else {
-        // Plain text
-        logText = rawBuffer.toString("utf-8");
+        // If we got a redirect (302), the URL is in the response headers
+        const redirectUrl = response?.headers?.location;
+        if (redirectUrl) {
+          console.log(`[LogDownloader] Got redirect URL for job ${job.name}, fetching logs...`);
+          const logResponse = await fetch(redirectUrl);
+          if (logResponse.ok) {
+            logText = await logResponse.text();
+          } else {
+            console.warn(`[LogDownloader] Fetch from redirect URL failed: ${logResponse.status}`);
+          }
+        } else if (response?.data) {
+          // Some versions of Octokit auto-follow the redirect and return data directly
+          const rawBuffer = responseDataToBuffer(response.data);
+          console.log(`[LogDownloader] Got ${rawBuffer.length} bytes directly (type: ${typeof response.data})`);
+          if (rawBuffer.length >= 4 && rawBuffer[0] === 0x50 && rawBuffer[1] === 0x4b) {
+            logText = extractTextFromZip(rawBuffer);
+          } else {
+            logText = rawBuffer.toString("utf-8");
+          }
+        }
+      } catch (reqErr: any) {
+        // If the request returned a 302 status, Octokit might throw —
+        // try to extract the redirect URL from the error response
+        const redirectUrl = reqErr?.response?.headers?.location;
+        if (redirectUrl) {
+          console.log(`[LogDownloader] Got redirect URL from error response for job ${job.name}`);
+          const logResponse = await fetch(redirectUrl);
+          if (logResponse.ok) {
+            logText = await logResponse.text();
+          }
+        } else {
+          // ── Approach 2: Fall back to downloadJobLogsForWorkflowRun ──────
+          console.warn(`[LogDownloader] request() failed for job ${job.name}, trying downloadJobLogsForWorkflowRun...`, reqErr?.message || reqErr);
+
+          const { data: jobLogs } = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+            owner,
+            repo,
+            job_id: job.id,
+          });
+
+          const rawBuffer = responseDataToBuffer(jobLogs);
+          console.log(`[LogDownloader] downloadJobLogsForWorkflowRun returned ${rawBuffer.length} bytes for job: ${job.name} (type: ${typeof jobLogs})`);
+
+          if (rawBuffer.length >= 4 && rawBuffer[0] === 0x50 && rawBuffer[1] === 0x4b) {
+            logText = extractTextFromZip(rawBuffer);
+          } else {
+            logText = rawBuffer.toString("utf-8");
+          }
+        }
       }
 
-      const cleanLog = stripAnsi(logText);
-      console.log(`[LogDownloader] Extracted ${cleanLog.length} chars of logs for job: ${job.name}`);
+      const cleanLog = stripAnsi(logText || "");
+      console.log(`[LogDownloader] Extracted ${cleanLog.length} chars of logs for job: ${job.name}. Preview: ${cleanLog.slice(0, 200).replace(/\n/g, "\\n")}`);
 
-      logParts.push(`=== Job: ${job.name} (conclusion: ${job.conclusion}) ===\nFailed Steps:\n${failedSteps}\n\n--- Logs ---\n${cleanLog}`);
+      if (cleanLog.length > 10) {
+        logParts.push(`=== Job: ${job.name} (conclusion: ${job.conclusion}) ===\nFailed Steps:\n${failedSteps}\n\n--- Logs ---\n${cleanLog}`);
+      } else {
+        // Log content is empty/too short — include step info at least
+        logParts.push(`=== Job: ${job.name} (conclusion: ${job.conclusion}) ===\nFailed Steps:\n${failedSteps}\n\n--- Logs ---\n[Log content was empty or too short (${cleanLog.length} chars)]`);
+      }
     } catch (err) {
       console.error(`[LogDownloader] Failed to download logs for job ${job.name} (id: ${job.id}):`, err);
       logParts.push(`=== Job: ${job.name} (conclusion: ${job.conclusion}) ===\nFailed Steps:\n${failedSteps}\n\nFailed to retrieve logs: ${err}`);
+    }
+  }
+
+  // ── Fallback: If all job-level logs are empty, try full workflow run logs ──
+  const hasRealContent = logParts.some(p => p.includes("--- Logs ---\n") && !p.includes("[Log content was empty"));
+  if (!hasRealContent) {
+    console.log(`[LogDownloader] Job-level logs were empty, falling back to full workflow run logs...`);
+    try {
+      const { logs: fullLogs } = await downloadWorkflowLogs(repoFullName, runId);
+      if (fullLogs.length > 50) {
+        logParts.push(`\n=== Full Workflow Run Logs (fallback) ===\n${fullLogs}`);
+      }
+    } catch (fallbackErr) {
+      console.error(`[LogDownloader] Full workflow run log fallback also failed:`, fallbackErr);
     }
   }
 
