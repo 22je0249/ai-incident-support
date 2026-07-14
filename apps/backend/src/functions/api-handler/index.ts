@@ -7,15 +7,22 @@ import { Incident, Repository, KnowledgeEntry, User, DashboardStats } from "@aio
 
 export const app = express();
 app.use(express.json());
-app.use((_req: Request, res: Response, next: NextFunction) => {
-  let origin = process.env.FRONTEND_URL || "*";
-  if (origin !== "*" && origin.endsWith("/")) {
-    origin = origin.slice(0, -1);
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const requestOrigin = req.headers.origin;
+  let allowedOrigin = process.env.FRONTEND_URL || "*";
+
+  if (requestOrigin && (requestOrigin.includes("localhost") || requestOrigin.includes("vercel.app") || requestOrigin === allowedOrigin)) {
+    allowedOrigin = requestOrigin;
   }
-  res.setHeader("Access-Control-Allow-Origin", origin);
+
+  if (allowedOrigin !== "*" && allowedOrigin.endsWith("/")) {
+    allowedOrigin = allowedOrigin.slice(0, -1);
+  }
+  
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  if (_req.method === "OPTIONS") return res.sendStatus(200);
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
 
