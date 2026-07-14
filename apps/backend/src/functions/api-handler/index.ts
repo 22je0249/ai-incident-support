@@ -41,19 +41,34 @@ app.get("/health", (_req: Request, res: Response) => {
 
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 
-app.get("/auth/github", (_req: Request, res: Response) => {
+app.get("/auth/github", (req: Request, res: Response) => {
+  const returnTo = req.query.returnTo || req.headers.referer || process.env.FRONTEND_URL;
+  const state = Buffer.from(JSON.stringify({ returnTo })).toString('base64');
+
   if (process.env.MOCK_DB === "true" || !process.env.GITHUB_CLIENT_ID) {
     console.log("[Auth][MOCK] Bypassing GitHub login redirect. Redirecting to mock callback.");
-    res.redirect(`/auth/github/callback?code=mock_code`);
+    res.redirect(`/auth/github/callback?code=mock_code&state=${state}`);
     return;
   }
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=user:email`;
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=user:email&state=${state}`;
   res.redirect(githubAuthUrl);
 });
 
 app.get("/auth/github/callback", async (req: Request, res: Response) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
   if (!code) return res.status(400).json({ error: "Missing code" });
+
+  let returnTo = process.env.FRONTEND_URL || "http://localhost:3000";
+  if (state) {
+    try {
+      const decoded = JSON.parse(Buffer.from(state as string, 'base64').toString('utf8'));
+      if (decoded.returnTo) {
+        returnTo = decoded.returnTo;
+      }
+    } catch (e) {
+      console.warn("Failed to parse state parameter", e);
+    }
+  }
 
   try {
     let githubUser: any;
@@ -119,10 +134,12 @@ app.get("/auth/github/callback", async (req: Request, res: Response) => {
     );
 
     // Redirect to frontend with token
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${jwtToken}`);
+    const baseUrl = returnTo.replace(/\/$/, '');
+    res.redirect(`${baseUrl}/auth/callback?token=${jwtToken}`);
   } catch (err) {
     console.error("[Auth] GitHub OAuth error:", err);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+    const baseUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, '');
+    res.redirect(`${baseUrl}/auth/error`);
   }
 });
 
