@@ -1,7 +1,7 @@
 # Resolve AI — Incident Response Platform
 
 > A self-learning AI platform for automated CI/CD failure diagnosis and incident resolution.  
-> **100% Free Tier** · Groq API · AWS Lambda · Amazon SES · Supabase pgvector
+> **100% Free Tier** · Groq API · AWS Lambda · Supabase pgvector
 
 ---
 
@@ -15,7 +15,6 @@
 | **Confidence Scoring** | Weighted formula: similarity + LLM confidence + historical success + risk |
 | **Risk Classification** | Deterministic rule-engine classifies changes before LLM refinement |
 | **Auto PR Creation** | Low-risk + ≥85% confidence → GitHub PR created automatically |
-| **Email Notifications** | Amazon SES sends HTML emails with one-click approve/reject links |
 | **Dashboard** | React + Recharts dashboard with real-time KPIs, charts, incident table |
 
 ---
@@ -28,7 +27,7 @@ When a CI/CD pipeline or workflow fails, Resolve AI intercepts the GitHub webhoo
 2. **Diagnosis & Risk Assessment**: The Groq LLM analyzes the logs to identify the root cause. A deterministic engine classifies the risk (Low, Medium, High, Critical).
 3. **Automated Fix**: If the risk is categorized as "Low" and the AI confidence score is above 85%, Resolve AI automatically generates a code fix.
 4. **PR Generation**: Resolve AI creates a new branch, commits the fix, and opens a Pull Request on GitHub on behalf of the developer.
-5. **Notification**: Developers receive an email notification detailing the incident, the proposed fix, and a direct link to the PR.
+5. **Notification**: The incident is flagged on the real-time dashboard for engineer review or approval.
 
 ### 2. RAG System & Self-Learning Knowledge Base
 Resolve AI gets smarter over time by leveraging Retrieval-Augmented Generation (RAG):
@@ -52,10 +51,10 @@ GitHub Webhook → API Gateway → Lambda (WebhookReceiver)
                           ├── Groq Embedding → Supabase pgvector search
                           ├── Groq LLM diagnosis (RAG)
                           ├── Confidence scoring + Risk classification
-                          ├── Low risk + high confidence → GitHub PR + SES email
-                          └── Medium/High risk → SES alert email
+                          ├── Low risk + high confidence → GitHub PR
+                          └── Medium/High risk → Dashboard alert
                                       ↓
-                     Human clicks "Approve" in email
+                     Human clicks "Approve" in dashboard
                                       ↓
                      Lambda (FeedbackHandler) → DynamoDB + Supabase
                                       ↓
@@ -75,7 +74,6 @@ GitHub Webhook → API Gateway → Lambda (WebhookReceiver)
 - Groq API key (free): https://console.groq.com
 - Supabase project (free): https://supabase.com
 - GitHub App created: https://github.com/settings/apps/new
-- Amazon SES email verified
 
 ### 1. Clone & Install
 
@@ -112,14 +110,7 @@ https://xxxx.execute-api.us-east-1.amazonaws.com/webhook/github
 ```
 Set the webhook in your GitHub App settings. Event: `Workflow runs`.
 
-### 6. Verify SES Email (Sandbox)
-
-```bash
-aws ses verify-email-identity --email-address your@email.com
-aws ses verify-email-identity --email-address team@company.com
-```
-
-### 7. Deploy Frontend to Vercel
+### 6. Deploy Frontend to Vercel
 
 ```bash
 cd apps/frontend
@@ -137,7 +128,6 @@ VITE_API_URL=https://your-api-gateway-url/api npx vercel --prod
 | DynamoDB | 25 GB storage |
 | S3 | 5 GB storage |
 | SQS | 1M req/mo |
-| **Amazon SES** | **62,000 emails/mo from Lambda** |
 | CloudWatch | 5 GB logs/mo |
 | EventBridge | 1M events/mo |
 | Groq API | Free tier (rate-limited) |
@@ -168,11 +158,11 @@ ai-incident-platform/
 │   ├── backend/              # Lambda functions + services
 │   │   ├── src/
 │   │   │   ├── functions/   # 7 Lambda handlers
-│   │   │   └── services/    # AI, GitHub, DB, Email services
+│   │   │   └── services/    # AI, GitHub, DB
 │   │   └── serverless.yml   # Full IaC (Lambda, DynamoDB, SQS, S3)
 │   └── frontend/             # React + Vite + Tailwind dashboard
 │       └── src/
-│           ├── pages/       # Dashboard, Incidents, KB, Repos, Settings
+│           ├── pages/       # Dashboard, Incidents, KB, Repos
 │           └── components/  # Layout, UI components
 ├── packages/
 │   └── types/               # Shared TypeScript interfaces
@@ -187,7 +177,7 @@ ai-incident-platform/
 
 | Secret | Description |
 |--------|-------------|
-| `AWS_ACCESS_KEY_ID` | IAM user with Lambda/DynamoDB/S3/SQS/SES permissions |
+| `AWS_ACCESS_KEY_ID` | IAM user with Lambda/DynamoDB/S3/SQS permissions |
 | `AWS_SECRET_ACCESS_KEY` | IAM secret key |
 | `GROQ_API_KEY` | From https://console.groq.com |
 | `SUPABASE_URL` | Supabase project URL |
@@ -197,8 +187,6 @@ ai-incident-platform/
 | `GH_WEBHOOK_SECRET` | Random string for webhook HMAC |
 | `GH_CLIENT_ID` | GitHub OAuth App client ID |
 | `GH_CLIENT_SECRET` | GitHub OAuth App client secret |
-| `SES_FROM_EMAIL` | Verified SES sender email |
-| `SES_ALERT_EMAIL` | Team email for incident alerts |
 | `JWT_SECRET` | Random secret ≥32 chars |
 | `FRONTEND_URL` | Vercel deployment URL |
 | `API_GATEWAY_URL` | API Gateway base URL (from `sls deploy` output) |
@@ -242,7 +230,6 @@ npx serverless invoke local -f learningJob
 | Storage | AWS S3 (build logs) |
 | LLM | Groq llama-3.3-70b-versatile |
 | Embeddings | Groq nomic-embed-text-v1_5 (768-dim) |
-| Email | Amazon SES |
 | Scheduler | AWS EventBridge |
 | Auth | GitHub OAuth + JWT |
 | CI/CD | GitHub Actions |
