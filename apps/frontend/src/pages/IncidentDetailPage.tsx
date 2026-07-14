@@ -15,8 +15,8 @@ function ConfidenceMeter({ value }: { value: number }) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
-        <span className="text-[#94a3b8]">{label}</span>
-        <span className="font-bold text-white">{value}%</span>
+        <span className="text-slate-500">{label}</span>
+        <span className="font-bold text-slate-900">{value}%</span>
       </div>
       <div className="confidence-bar">
         <div className="confidence-fill" style={{ width: `${value}%`, background: color }} />
@@ -94,9 +94,9 @@ export default function IncidentDetailPage() {
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-white leading-tight">{incident.title}</h1>
+          <h1 className="text-xl font-bold text-slate-900 leading-tight">{incident.title}</h1>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <code className="text-xs text-purple-300 font-mono bg-purple-500/10 px-2 py-1 rounded">
+            <code className="text-xs text-purple-600 font-mono bg-purple-500/10 px-2 py-1 rounded">
               {incident.repositoryName}
             </code>
             <span className={`badge badge-${incident.severity}`}>{incident.severity}</span>
@@ -123,13 +123,13 @@ export default function IncidentDetailPage() {
           {/* AI Diagnosis Panel */}
           {diagnosis ? (
             <div className="card card-glow space-y-5">
-              <div className="flex items-center gap-3 pb-4 border-b border-[#1f2937]">
+              <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
                 <div className="w-9 h-9 rounded-lg bg-purple-500/15 flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-purple-400" />
+                  <Brain className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-white">AI Diagnosis</h2>
-                  <p className="text-xs text-[#64748b]">Powered by Groq llama-3.3-70b</p>
+                  <h2 className="font-semibold text-slate-900">AI Diagnosis</h2>
+                  <p className="text-xs text-slate-500">Powered by Groq llama-3.3-70b</p>
                 </div>
                 <div className="ml-auto">
                   <span className="badge badge-analyzing">
@@ -140,7 +140,7 @@ export default function IncidentDetailPage() {
 
               {/* Confidence */}
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#64748b] mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                   Confidence Score
                 </h3>
                 <ConfidenceMeter value={diagnosis.confidence} />
@@ -148,22 +148,22 @@ export default function IncidentDetailPage() {
 
               {/* Root Cause */}
               <div>
-                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#64748b] mb-2">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                   Root Cause
                 </h3>
-                <p className="text-sm text-[#e2e8f0] leading-relaxed bg-[#0e1320] rounded-lg p-4 border border-[#1f2937]">
+                <p className="text-sm text-slate-800 leading-relaxed bg-slate-50 rounded-lg p-4 border border-slate-200">
                   {diagnosis.rootCause}
                 </p>
               </div>
 
               {/* Resolution */}
               <div>
-                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#64748b] mb-2">
-                  <Lightbulb className="w-3.5 h-3.5 text-emerald-400" />
+                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  <Lightbulb className="w-3.5 h-3.5 text-emerald-500" />
                   Suggested Resolution
                 </h3>
-                <p className="text-sm text-[#e2e8f0] leading-relaxed bg-emerald-500/5 rounded-lg p-4 border border-emerald-500/20">
+                <p className="text-sm text-slate-800 leading-relaxed bg-emerald-500/5 rounded-lg p-4 border border-emerald-500/20">
                   {diagnosis.resolution}
                 </p>
               </div>
@@ -171,8 +171,8 @@ export default function IncidentDetailPage() {
               {/* Fix Diff */}
               {diagnosis.fixDiff && (
                 <div>
-                  <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#64748b] mb-2">
-                    <Code2 className="w-3.5 h-3.5 text-blue-400" />
+                  <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                    <Code2 className="w-3.5 h-3.5 text-blue-500" />
                     Proposed Diff
                   </h3>
                   <DiffViewer diff={diagnosis.fixDiff} />
@@ -182,22 +182,22 @@ export default function IncidentDetailPage() {
               {/* Similar Incidents */}
               {diagnosis.similarIncidents && diagnosis.similarIncidents.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-[#64748b] mb-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                     Similar Past Incidents
                   </h3>
                   <div className="space-y-2">
                     {diagnosis.similarIncidents.map((s, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-[#0e1320] border border-[#1f2937]">
-                        <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-xs text-purple-400 font-bold shrink-0">
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                        <div className="w-6 h-6 rounded-full bg-purple-500/10 flex items-center justify-center text-xs text-purple-600 font-bold shrink-0">
                           {i + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-white truncate">{s.title}</p>
-                          <p className="text-xs text-[#64748b] mt-0.5">{s.resolution.slice(0, 80)}…</p>
+                          <p className="text-xs font-medium text-slate-900 truncate">{s.title}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{s.resolution.slice(0, 80)}…</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="text-xs font-bold text-purple-400">{s.similarity}%</div>
-                          <div className="text-[10px] text-[#475569]">{s.successCount}× success</div>
+                          <div className="text-xs font-bold text-purple-600">{s.similarity}%</div>
+                          <div className="text-[10px] text-slate-400">{s.successCount}× success</div>
                         </div>
                       </div>
                     ))}
@@ -208,13 +208,13 @@ export default function IncidentDetailPage() {
           ) : (
             <div className="card flex items-center justify-center py-16">
               <div className="text-center">
-                <Brain className="w-10 h-10 text-[#374151] mx-auto mb-3" />
-                <p className="text-[#64748b]">
+                <Brain className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">
                   {incident.status === "analyzing" ? "AI analysis in progress…" : "No AI diagnosis available"}
                 </p>
                 {incident.status === "analyzing" && (
                   <div className="mt-3 flex justify-center">
-                    <div className="w-32 h-1.5 rounded-full bg-[#1f2937] overflow-hidden">
+                    <div className="w-32 h-1.5 rounded-full bg-slate-200 overflow-hidden">
                       <div className="h-full rounded-full bg-purple-500 animate-pulse" style={{ width: "60%" }} />
                     </div>
                   </div>
@@ -226,9 +226,9 @@ export default function IncidentDetailPage() {
           {/* Logs section */}
           {incident.rawLogsS3Key && (
             <div className="card">
-              <h3 className="font-semibold text-white mb-3 text-sm">Build Logs</h3>
-              <p className="text-xs text-[#64748b]">
-                Archived at: <code className="text-purple-300">{incident.rawLogsS3Key}</code>
+              <h3 className="font-semibold text-slate-900 mb-3 text-sm">Build Logs</h3>
+              <p className="text-xs text-slate-500">
+                Archived at: <code className="text-purple-600">{incident.rawLogsS3Key}</code>
               </p>
             </div>
           )}
@@ -238,7 +238,7 @@ export default function IncidentDetailPage() {
         <div className="col-span-4 space-y-4">
           {/* Actions */}
           <div className="card space-y-3">
-            <h3 className="font-semibold text-white text-sm border-b border-[#1f2937] pb-3">
+            <h3 className="font-semibold text-slate-900 text-sm border-b border-slate-200 pb-3">
               Actions
             </h3>
 
@@ -307,7 +307,7 @@ export default function IncidentDetailPage() {
 
           {/* Metadata */}
           <div className="card space-y-4">
-            <h3 className="font-semibold text-white text-sm border-b border-[#1f2937] pb-3">
+            <h3 className="font-semibold text-slate-900 text-sm border-b border-slate-200 pb-3">
               Incident Details
             </h3>
             {[
@@ -319,8 +319,8 @@ export default function IncidentDetailPage() {
               { label: "Resolved", value: incident.resolvedAt ? format(parseISO(incident.resolvedAt), "MMM d, HH:mm") : "—" },
             ].map(({ label, value, mono }) => (
               <div key={label} className="flex justify-between gap-2">
-                <span className="text-xs text-[#64748b]">{label}</span>
-                <span className={`text-xs text-white font-medium text-right ${mono ? "font-mono text-purple-300" : ""}`}>
+                <span className="text-xs text-slate-500">{label}</span>
+                <span className={`text-xs text-slate-900 font-medium text-right ${mono ? "font-mono text-purple-600" : ""}`}>
                   {value || "—"}
                 </span>
               </div>
