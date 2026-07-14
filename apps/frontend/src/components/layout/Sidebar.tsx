@@ -1,81 +1,142 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useLayoutStore } from "../../store/layoutStore";
+import ConfirmModal from "../ui/ConfirmModal";
 import {
   LayoutDashboard, AlertTriangle, BookOpen, GitBranch,
-  Settings, Zap, LogOut, ChevronRight, Activity
+  Settings, LogOut, PanelLeftClose, PanelLeftOpen, HelpCircle, X
 } from "lucide-react";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/incidents", icon: AlertTriangle, label: "Incidents" },
   { to: "/knowledge", icon: BookOpen, label: "Knowledge Base" },
-  { to: "/repositories", icon: GitBranch, label: "Repositories" },
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/repositories", icon: GitBranch, label: "System Users" },
 ];
 
 export default function Sidebar() {
-  return (
-    <aside className="w-64 shrink-0 bg-[#0e1320] border-r border-[#1f2937] flex flex-col h-screen sticky top-0">
-      {/* ── Logo ──────────────────────────────────────────────────── */}
-      <div className="px-6 py-5 border-b border-[#1f2937]">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-violet-700 flex items-center justify-center shadow-lg shadow-purple-900/30">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-white leading-tight">AIOps Copilot</h1>
-            <p className="text-[10px] text-purple-400 font-medium tracking-wide uppercase">Incident Response</p>
-          </div>
-        </div>
-      </div>
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { mobileMenuOpen, setMobileMenuOpen } = useLayoutStore();
 
-      {/* ── Live Indicator ─────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-[#1f2937]">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-          <div className="pulse-dot">
-            <span className="bg-emerald-400" />
-            <span className="dot-inner bg-emerald-400" />
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    if (!isCollapsed) {
+      timeout = setTimeout(() => {
+        setIsCollapsed(true);
+      }, 5000);
+    }
+    return () => clearTimeout(timeout);
+  }, [isCollapsed]);
+
+  return (
+    <>
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" 
+          onClick={() => setMobileMenuOpen(false)} 
+        />
+      )}
+      <aside
+        className={`${isCollapsed ? "w-20" : "w-72"
+          } shrink-0 flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out bg-[var(--bg-primary)] md:bg-transparent ${mobileMenuOpen ? "fixed left-0 z-50 shadow-2xl" : "hidden md:flex"}`}
+      >
+      {/* ── Logo & Toggle ────────────────────────────────────────── */}
+      <div className="h-20 px-4 flex items-center justify-between border-b border-slate-200/50 mx-2">
+        {!isCollapsed && (
+          <div className="flex items-center gap-2 overflow-hidden">
+            <img src="/logo.png" alt="Resolve AI Logo" className="w-9 h-12 object-contain shrink-0" />
+            <span className="text-2xl font-black text-slate-800 tracking-tight whitespace-nowrap">
+              Resolve<span className="text-teal-500"> AI</span>
+            </span>
           </div>
-          <span className="text-xs text-emerald-400 font-medium">System Online</span>
-          <Activity className="w-3 h-3 text-emerald-400 ml-auto" />
-        </div>
+        )}
+        <button
+          onClick={() => {
+            if (window.innerWidth < 768) {
+              setMobileMenuOpen(false);
+            } else {
+              setIsCollapsed(!isCollapsed);
+            }
+          }}
+          className={`p-2 rounded-lg text-slate-500 hover:bg-white hover:shadow-sm transition-all ${isCollapsed ? "mx-auto" : ""
+            }`}
+        >
+          {window.innerWidth < 768 ? (
+            <X className="w-5 h-5" />
+          ) : isCollapsed ? (
+            <PanelLeftOpen className="w-5 h-5" />
+          ) : (
+            <PanelLeftClose className="w-5 h-5" />
+          )}
+        </button>
       </div>
 
       {/* ── Navigation ─────────────────────────────────────────────── */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-[#475569]">
-          Navigation
-        </p>
+      <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-visible">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
+            onClick={() => {
+              if (window.innerWidth < 768) setMobileMenuOpen(false);
+            }}
             className={({ isActive }) =>
-              `nav-link ${isActive ? "active" : ""}`
+              `relative group flex items-center gap-3 px-3 py-3 rounded-xl font-medium transition-all duration-200 ${isActive
+                ? "bg-teal-500 text-white shadow-md shadow-teal-500/20"
+                : "text-slate-600 hover:bg-white hover:text-teal-600 hover:shadow-sm"
+              } ${isCollapsed ? "justify-center" : ""}`
             }
           >
-            <Icon className="w-4 h-4 shrink-0" />
-            <span className="flex-1">{label}</span>
-            <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Icon className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span className="flex-1 whitespace-nowrap">{label}</span>}
+            
+            {/* Custom Tooltip */}
+            {isCollapsed && (
+              <div className="absolute left-full ml-1 px-3 py-1.5 bg-teal-500 text-white text-sm font-semibold rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                {label}
+              </div>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      {/* ── Footer ─────────────────────────────────────────────────── */}
-      <div className="px-3 py-4 border-t border-[#1f2937]">
+      {/* ── Footer Actions ─────────────────────────────────────────── */}
+      <div className="px-3 py-6 space-y-2 border-t border-slate-200/50 mx-2">
         <button
-          onClick={() => {
-            localStorage.removeItem("aiops_token");
-            window.location.href = "/login";
-          }}
-          className="nav-link w-full text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          title={isCollapsed ? "Help" : undefined}
+          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-slate-600 hover:bg-white hover:text-teal-600 hover:shadow-sm transition-all duration-200 ${isCollapsed ? "justify-center" : ""
+            }`}
         >
-          <LogOut className="w-4 h-4" />
-          <span>Sign Out</span>
+          <HelpCircle className="w-5 h-5 shrink-0" />
+          {!isCollapsed && <span className="whitespace-nowrap">Help</span>}
         </button>
-        <p className="mt-3 px-3 text-[10px] text-[#374151] text-center">
-          Powered by Groq · AWS Lambda
-        </p>
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          title={isCollapsed ? "Logout" : undefined}
+          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:shadow-sm transition-all duration-200 ${isCollapsed ? "justify-center" : ""
+            }`}
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!isCollapsed && <span className="whitespace-nowrap">Logout</span>}
+        </button>
       </div>
     </aside>
+
+    <ConfirmModal
+      isOpen={showLogoutConfirm}
+      title="Log Out"
+      message="Are you sure you want to log out?"
+      confirmText="Log Out"
+      isDestructive={true}
+      onConfirm={() => {
+        localStorage.removeItem("aiops_token");
+        toast.success("Successfully logged out");
+        window.location.href = "/login";
+      }}
+      onCancel={() => setShowLogoutConfirm(false)}
+    />
+    </>
   );
 }

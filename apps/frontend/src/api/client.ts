@@ -49,5 +49,5 @@ export const knowledgeApi = {
 };
 
 export const dashboardApi = {
-  stats: () => api.get("/dashboard").then((r) => r.data),
+  stats: () => api.get("/dashboard/stats").then((r) => r.data),
 };

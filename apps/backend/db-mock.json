@@ -132,6 +132,62 @@
       "verified": true,
       "successCount": 3,
       "createdAt": "2026-06-26T17:38:02.707Z"
+    },
+    {
+      "id": "b2c113e3-e059-426d-ba00-9b21f20f5abb",
+      "incidentId": "22208b28-5610-4c5b-bb03-4fe5b59a0bc1",
+      "title": "Python CI failed on feature/buggy-calculator",
+      "rootCause": "No logs available to diagnose the issue, unable to determine the root cause of the CI/CD failure",
+      "resolution": "Check the CI/CD pipeline configuration to ensure logging is enabled, then re-run the pipeline to generate logs for further diagnosis",
+      "errorType": "test_failure",
+      "verified": true,
+      "successCount": 1,
+      "totalUsage": 1,
+      "supabaseVectorId": "68a4fa63-17df-430e-ab4e-06410c4d112e",
+      "createdAt": "2026-07-14T08:05:12.902Z",
+      "updatedAt": "2026-07-14T08:05:12.902Z"
+    },
+    {
+      "id": "91cac0ad-4e0c-499b-9fee-8b548799ae2f",
+      "incidentId": "a9f10d58-53b5-4a6c-a83e-8f312f421cf6",
+      "title": "Python CI failed on feature/buggy-calculator",
+      "rootCause": "The calculator.py script contains a syntax error, specifically a missing colon at the end of the function definition for 'divide'.",
+      "resolution": "1. Open the calculator.py script. 2. Locate the 'divide' function definition. 3. Add a colon at the end of the function definition line.",
+      "errorType": "test_failure",
+      "verified": true,
+      "successCount": 1,
+      "totalUsage": 1,
+      "supabaseVectorId": "e92a8cb4-74f2-44dd-9b73-66c96fe304fe",
+      "createdAt": "2026-07-14T08:05:12.902Z",
+      "updatedAt": "2026-07-14T08:05:12.902Z"
+    },
+    {
+      "id": "09f48520-2c98-4b40-b44a-7cb1452e2975",
+      "incidentId": "mock-incident-id-999",
+      "title": "CompileError: Cannot find module '@aiops/types'",
+      "rootCause": "TypeScript path alias mismatch for @aiops/types in tsconfig.json",
+      "resolution": "Update paths in apps/backend/tsconfig.json to point to pre-built dist output instead of source directory",
+      "errorType": "test_failure",
+      "verified": true,
+      "successCount": 1,
+      "totalUsage": 1,
+      "supabaseVectorId": "bb0aaca8-7d45-4529-9262-799d241f2b63",
+      "createdAt": "2026-07-14T08:05:12.902Z",
+      "updatedAt": "2026-07-14T08:05:12.902Z"
+    },
+    {
+      "id": "8ba1e9f1-a127-4bc0-9077-a6e2cf73a3e2",
+      "incidentId": "4e10e435-1544-494e-8cde-dd91529e669c",
+      "title": "Python CI failed on test/logic-error",
+      "rootCause": "The calculator.py script is attempting to add a negative number, which is not allowed by the add function's assertion that inputs must be non-negative.",
+      "resolution": "Update the calculator.py script to handle negative numbers, either by removing the assertion or by adding error checking to handle negative inputs. For example, you could add a check at the beginning of the add function to raise an error if either input is negative.",
+      "errorType": "test_failure",
+      "verified": true,
+      "successCount": 1,
+      "totalUsage": 1,
+      "supabaseVectorId": "d403eab5-58dc-415d-a11e-fbe28aa7a512",
+      "createdAt": "2026-07-14T08:05:12.902Z",
+      "updatedAt": "2026-07-14T08:05:12.902Z"
     }
   ],
   "feedback": []

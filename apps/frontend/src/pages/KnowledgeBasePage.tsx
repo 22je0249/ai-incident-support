@@ -30,32 +30,19 @@ export default function KnowledgeBasePage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            <span className="gradient-text">Knowledge Base</span>
-          </h1>
-          <p className="text-sm text-[#64748b] mt-1">
-            {entries.length} verified resolution{entries.length !== 1 ? "s" : ""} — self-learning from every incident
-          </p>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-          <BookOpen className="w-4 h-4 text-blue-400" />
-          <span className="text-sm text-blue-300 font-medium">{entries.length} Entries</span>
-        </div>
-      </div>
+
 
       {/* Search */}
       <div className="card">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#475569]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             id="kb-search"
             placeholder="Search knowledge base (root causes, resolutions, tech stack)…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input pl-10 text-base"
+            className="input pl-10 text-base w-full"
           />
         </div>
       </div>
@@ -69,7 +56,7 @@ export default function KnowledgeBasePage() {
           <div key={entry.id} className="card card-hover group animate-fade-in">
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-white text-sm line-clamp-2 group-hover:text-purple-300 transition-colors">
+                <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 transition-colors">
                   {entry.title}
                 </h3>
                 {entry.errorType && (
@@ -93,48 +80,48 @@ export default function KnowledgeBasePage() {
 
             <div className="space-y-3">
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">
                   Root Cause
                 </p>
-                <p className="text-xs text-[#94a3b8] line-clamp-2">{entry.rootCause}</p>
+                <p className="text-xs text-slate-600 line-clamp-2">{entry.rootCause}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#475569] font-semibold mb-1">
+                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">
                   Resolution
                 </p>
-                <p className="text-xs text-[#94a3b8] line-clamp-3">{entry.resolution}</p>
+                <p className="text-xs text-slate-600 line-clamp-3">{entry.resolution}</p>
               </div>
             </div>
 
             {entry.technology && entry.technology.length > 0 && (
               <div className="flex items-center gap-2 mt-4 flex-wrap">
-                <Tag className="w-3 h-3 text-[#475569]" />
+                <Tag className="w-3 h-3 text-slate-400" />
                 {entry.technology.map((t) => (
-                  <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2937] text-[#64748b] border border-[#374151]">
+                  <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
                     {t}
                   </span>
                 ))}
               </div>
             )}
 
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#1f2937]">
-              <span className="text-[10px] text-[#475569]">
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+              <span className="text-[10px] text-slate-500">
                 Added {format(parseISO(entry.createdAt), "MMM d, yyyy")}
               </span>
-              <span className="text-[10px] text-emerald-400 font-medium">
+              <span className="text-[10px] text-emerald-600 font-medium">
                 Used {entry.successCount} time{entry.successCount !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
         ))}
         {!isLoading && filtered.length === 0 && (
-          <div className="col-span-2 card flex items-center justify-center py-16">
+          <div className="col-span-1 lg:col-span-2 card flex items-center justify-center py-16">
             <div className="text-center">
-              <BookOpen className="w-10 h-10 text-[#374151] mx-auto mb-3" />
-              <p className="text-[#64748b]">
+              <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500">
                 {search ? "No entries match your search" : "No knowledge base entries yet"}
               </p>
-              <p className="text-xs text-[#374151] mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Entries are added automatically when incidents are resolved
               </p>
             </div>

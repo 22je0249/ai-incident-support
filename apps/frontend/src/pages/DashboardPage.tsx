@@ -13,7 +13,15 @@ import { format, parseISO } from "date-fns";
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
 function SeverityBadge({ severity }: { severity: string }) {
-  return <span className={`badge badge-${severity}`}>{severity}</span>;
+  const s = severity.toLowerCase();
+  const classes = {
+    low: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    medium: "bg-amber-100 text-amber-700 border border-amber-200",
+    high: "bg-red-100 text-red-700 border border-red-200",
+    critical: "bg-rose-100 text-rose-700 border border-rose-200",
+  }[s] || "bg-slate-100 text-slate-700 border border-slate-200";
+
+  return <span className={`badge ${classes} capitalize`}>{s}</span>;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -24,7 +32,17 @@ function StatusBadge({ status }: { status: string }) {
     rejected: "Rejected",
     pr_created: "PR Created",
   };
-  return <span className={`badge badge-${status}`}>{labels[status] || status}</span>;
+  
+  const s = status.toLowerCase();
+  const classes = {
+    open: "bg-blue-100 text-blue-700 border border-blue-200",
+    analyzing: "bg-purple-100 text-purple-700 border border-purple-200",
+    resolved: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    rejected: "bg-slate-100 text-slate-700 border border-slate-200",
+    pr_created: "bg-violet-100 text-violet-700 border border-violet-200",
+  }[s] || "bg-slate-100 text-slate-700 border border-slate-200";
+
+  return <span className={`badge ${classes}`}>{labels[status] || status}</span>;
 }
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
@@ -47,9 +65,9 @@ function StatCard({
           </div>
         )}
       </div>
-      <div className="text-3xl font-bold text-white mb-1">{value}</div>
-      <div className="text-sm text-[#94a3b8] font-medium">{label}</div>
-      {sub && <div className="text-xs text-[#475569] mt-1">{sub}</div>}
+      <div className="text-3xl font-bold text-slate-900 mb-1">{value}</div>
+      <div className="text-sm text-slate-500 font-medium">{label}</div>
+      {sub && <div className="text-xs text-slate-400 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -74,8 +92,8 @@ function ConfidenceMeter({ value }: { value: number }) {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass rounded-lg p-3 text-xs shadow-xl border border-[#374151]">
-        <p className="text-[#94a3b8] mb-2">{label}</p>
+      <div className="glass rounded-lg p-3 text-xs shadow-xl border border-slate-200">
+        <p className="text-slate-500 mb-2">{label}</p>
         {payload.map((p: any, i: number) => (
           <p key={i} style={{ color: p.color }} className="font-medium">
             {p.name}: {p.value}
@@ -103,7 +121,7 @@ export default function DashboardPage() {
   if (isLoading || !stats) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-32 rounded-xl" />)}
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -116,25 +134,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-8">
       {/* ── Header ──────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            Overview <span className="gradient-text">Dashboard</span>
-          </h1>
-          <p className="text-sm text-[#64748b] mt-1">
-            Real-time incident monitoring and AI resolution insights
-          </p>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-          <Brain className="w-4 h-4 text-purple-400" />
-          <span className="text-sm text-purple-300 font-medium">
-            Groq AI Active
-          </span>
-        </div>
-      </div>
+
 
       {/* ── KPI Cards ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={AlertTriangle}
           label="Total Incidents"
@@ -169,7 +172,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Secondary KPIs ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={GitPullRequest}
           label="PRs Created"
@@ -198,11 +201,11 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Charts Row ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Weekly Trend — large */}
-        <div className="col-span-8 card">
+        <div className="lg:col-span-8 card">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-white">Weekly Incident Trend</h3>
+            <h3 className="font-semibold text-slate-900">Weekly Incident Trend</h3>
             <span className="badge badge-medium">Last 7 days</span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -217,14 +220,14 @@ export default function DashboardPage() {
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
                 dataKey="date"
-                stroke="#475569"
+                stroke="#94a3b8"
                 tick={{ fontSize: 11 }}
                 tickFormatter={(d) => format(parseISO(d), "MMM d")}
               />
-              <YAxis stroke="#475569" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} />
               <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone" dataKey="incidents" name="Incidents"
@@ -239,8 +242,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Severity Breakdown — pie */}
-        <div className="col-span-4 card">
-          <h3 className="font-semibold text-white mb-6">Severity Distribution</h3>
+        <div className="lg:col-span-4 card">
+          <h3 className="font-semibold text-slate-900 mb-6">Severity Distribution</h3>
           <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie
@@ -269,9 +272,9 @@ export default function DashboardPage() {
                     className="w-2 h-2 rounded-full"
                     style={{ background: SEVERITY_COLORS[s.severity as keyof typeof SEVERITY_COLORS] }}
                   />
-                  <span className="text-[#94a3b8] capitalize">{s.severity}</span>
+                  <span className="text-slate-500 capitalize">{s.severity}</span>
                 </div>
-                <span className="text-white font-medium">{s.count}</span>
+                <span className="text-slate-900 font-medium">{s.count}</span>
               </div>
             ))}
           </div>
@@ -279,15 +282,15 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Confidence Chart + Recent Incidents ─────────────────────── */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Confidence distribution */}
-        <div className="col-span-5 card">
-          <h3 className="font-semibold text-white mb-6">Confidence Distribution</h3>
+        <div className="lg:col-span-5 card">
+          <h3 className="font-semibold text-slate-900 mb-6">Confidence Distribution</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={stats.confidenceDistribution} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="range" stroke="#475569" tick={{ fontSize: 10 }} />
-              <YAxis stroke="#475569" tick={{ fontSize: 10 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="range" stroke="#94a3b8" tick={{ fontSize: 10 }} />
+              <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" name="Incidents" radius={[4, 4, 0, 0]}>
                 {stats.confidenceDistribution.map((entry, i) => {
@@ -299,18 +302,18 @@ export default function DashboardPage() {
             </BarChart>
           </ResponsiveContainer>
           <div className="mt-4">
-            <div className="flex justify-between text-xs text-[#64748b] mb-2">
+            <div className="flex justify-between text-xs text-slate-500 mb-2">
               <span>Average AI Confidence</span>
-              <span className="text-white font-medium">{stats.avgConfidence}%</span>
+              <span className="text-slate-900 font-medium">{stats.avgConfidence}%</span>
             </div>
             <ConfidenceMeter value={stats.avgConfidence} />
           </div>
         </div>
 
         {/* Recent Incidents */}
-        <div className="col-span-7 card">
+        <div className="lg:col-span-7 card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-white">Recent Incidents</h3>
+            <h3 className="font-semibold text-slate-900">Recent Incidents</h3>
             <a href="/incidents" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">
               View all →
             </a>
@@ -320,13 +323,13 @@ export default function DashboardPage() {
               <a
                 key={incident.id}
                 href={`/incidents/${incident.id}`}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#0e1320] transition-colors group"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 hover:-translate-y-0.5 hover:shadow-sm border border-transparent hover:border-slate-200 transition-all duration-200 group"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white truncate font-medium group-hover:text-purple-300 transition-colors">
+                  <p className="text-sm text-slate-900 truncate font-medium">
                     {incident.title}
                   </p>
-                  <p className="text-xs text-[#64748b] mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     {incident.repositoryName} · {format(parseISO(incident.createdAt), "MMM d, HH:mm")}
                   </p>
                 </div>
@@ -334,7 +337,7 @@ export default function DashboardPage() {
                   <SeverityBadge severity={incident.severity} />
                   <StatusBadge status={incident.status} />
                   {incident.confidence !== undefined && (
-                    <span className="text-xs font-medium text-[#64748b]">
+                    <span className="text-xs font-medium text-slate-500">
                       {incident.confidence}%
                     </span>
                   )}
@@ -342,7 +345,7 @@ export default function DashboardPage() {
               </a>
             ))}
             {stats.recentIncidents.length === 0 && (
-              <div className="text-center py-8 text-[#475569]">
+              <div className="text-center py-8 text-slate-400">
                 <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-400" />
                 <p className="text-sm">No incidents — all systems operational! 🎉</p>
               </div>
