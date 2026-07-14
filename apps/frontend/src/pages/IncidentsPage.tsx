@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Search, Filter, RefreshCw, ArrowUpRight } from "lucide-react";
+import { AlertTriangle, Search, Filter, RefreshCw, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { incidentsApi } from "../api/client";
 import { Incident, IncidentStatus, Severity } from "@aiops/types";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
@@ -62,6 +62,13 @@ export default function IncidentsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["incidents", statusFilter],
@@ -81,6 +88,9 @@ export default function IncidentsPage() {
       i.errorType?.toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <div className="space-y-6 pb-8">
@@ -141,7 +151,7 @@ export default function IncidentsPage() {
                 ))}
               </tr>
             ))}
-            {!isLoading && filtered.map((incident) => (
+            {!isLoading && paginated.map((incident) => (
               <tr
                 key={incident.id}
                 className="table-row"
@@ -193,7 +203,7 @@ export default function IncidentsPage() {
                 </td>
               </tr>
             ))}
-            {!isLoading && filtered.length === 0 && (
+            {!isLoading && paginated.length === 0 && (
               <tr>
                 <td colSpan={8} className="table-cell text-center py-16 text-slate-500">
                   <AlertTriangle className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
@@ -204,6 +214,34 @@ export default function IncidentsPage() {
           </tbody>
         </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {!isLoading && filtered.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
+            <span className="text-sm text-slate-500">
+              Showing <span className="font-medium text-slate-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-slate-900">{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)}</span> of <span className="font-medium text-slate-900">{filtered.length}</span> results
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-sm font-medium text-slate-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
