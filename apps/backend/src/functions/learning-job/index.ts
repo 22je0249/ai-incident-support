@@ -1,7 +1,8 @@
 import { ScheduledEvent } from "aws-lambda";
-import { dbScan, dbUpdate, Tables } from "../../services/db/DynamoClient";
+import { dbScan, dbUpdate, dbPut, Tables } from "../../services/db/DynamoClient";
 import { upsertEmbedding } from "../../services/knowledge/VectorStore";
 import { embedText } from "../../services/ai/GroqService";
+import { v4 as uuidv4 } from "uuid";
 // Email service temporarily disabled
 // import { sendWeeklyDigest } from "../../services/email/SESService";
 import { Incident, KnowledgeEntry } from "@aiops/types";
@@ -42,7 +43,7 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
 
       const embedding = await embedText(content);
 
-      await upsertEmbedding(incident.id, content, embedding, {
+      const vectorId = await upsertEmbedding(incident.id, content, embedding, {
         title: incident.title,
         rootCause: incident.aiDiagnosis.rootCause,
         resolution: incident.resolution || incident.aiDiagnosis.resolution,
@@ -50,10 +51,26 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
         successCount: 1,
       });
 
+      const now = new Date().toISOString();
+      await dbPut(Tables.KNOWLEDGE, {
+        id: uuidv4(),
+        incidentId: incident.id,
+        title: incident.title,
+        rootCause: incident.aiDiagnosis.rootCause,
+        resolution: incident.resolution || incident.aiDiagnosis.resolution,
+        errorType: incident.aiDiagnosis.errorType || "unknown",
+        verified: true,
+        successCount: 1,
+        totalUsage: 1,
+        supabaseVectorId: vectorId,
+        createdAt: now,
+        updatedAt: now,
+      });
+
       // Mark as embedded
       await dbUpdate(Tables.INCIDENTS, { id: incident.id }, {
-        embeddedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        embeddedAt: now,
+        updatedAt: now,
       });
 
       successCount++;
