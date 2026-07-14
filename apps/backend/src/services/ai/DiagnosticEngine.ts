@@ -82,19 +82,24 @@ export async function runDiagnosticPipeline(
     diagnosis.riskLevel as RiskLevel
   );
 
-  // Step 5: Compute historical success rate
+  // Step 5: Compute historical success rate (if solved once, it is a known resolution)
   const topMatch = similarResults[0];
   const historicalSuccess = topMatch
-    ? Math.min(100, (topMatch.metadata.successCount / 10) * 100)
+    ? (topMatch.metadata.successCount >= 1 ? 100 : 50)
     : 50;
 
   // Step 6: Compute final confidence
-  const confidence = computeConfidence({
+  let confidence = computeConfidence({
     similarityScore,
     llmConfidence: diagnosis.confidence,
     historicalSuccess,
     riskLevel,
   });
+
+  // If we match a past solved incident with high similarity, boost confidence to similarityScore
+  if (similarityScore >= 85) {
+    confidence = Math.max(confidence, similarityScore);
+  }
 
   // Step 7: Build AI diagnosis object
   const aiDiagnosis: AIDiagnosis = {
