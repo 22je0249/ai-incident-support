@@ -1,26 +1,46 @@
-# 🤖 AIOps Copilot — AI Incident Response Platform
+# Resolve AI — Incident Response Platform
 
 > A self-learning AI platform for automated CI/CD failure diagnosis and incident resolution.  
 > **100% Free Tier** · Groq API · AWS Lambda · Amazon SES · Supabase pgvector
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔍 **Real-time Monitoring** | GitHub webhooks trigger instant analysis on workflow failures |
-| 🧠 **AI Diagnosis** | Groq `llama-3.3-70b-versatile` analyzes logs with RAG context |
-| 📚 **Self-Learning KB** | Resolved incidents embed into Supabase pgvector, improving future accuracy |
-| 🎯 **Confidence Scoring** | Weighted formula: similarity + LLM confidence + historical success + risk |
-| 🛡️ **Risk Classification** | Deterministic rule-engine classifies changes before LLM refinement |
-| 🔀 **Auto PR Creation** | Low-risk + ≥85% confidence → GitHub PR created automatically |
-| 📧 **Email Notifications** | Amazon SES sends HTML emails with one-click approve/reject links |
-| 📊 **Dashboard** | React + Recharts dashboard with real-time KPIs, charts, incident table |
+| **Real-time Monitoring** | GitHub webhooks trigger instant analysis on workflow failures |
+| **AI Diagnosis** | Groq `llama-3.3-70b-versatile` analyzes logs with RAG context |
+| **Self-Learning KB** | Resolved incidents embed into Supabase pgvector, improving future accuracy |
+| **Confidence Scoring** | Weighted formula: similarity + LLM confidence + historical success + risk |
+| **Risk Classification** | Deterministic rule-engine classifies changes before LLM refinement |
+| **Auto PR Creation** | Low-risk + ≥85% confidence → GitHub PR created automatically |
+| **Email Notifications** | Amazon SES sends HTML emails with one-click approve/reject links |
+| **Dashboard** | React + Recharts dashboard with real-time KPIs, charts, incident table |
 
 ---
 
-## 🏗️ Architecture
+## How Resolve AI Works
+
+### 1. Automated PR Creation & Error Resolution
+When a CI/CD pipeline or workflow fails, Resolve AI intercepts the GitHub webhook and begins its diagnosis pipeline:
+1. **Log Ingestion**: It fetches the raw build logs from GitHub and uploads them to S3 for processing.
+2. **Diagnosis & Risk Assessment**: The Groq LLM analyzes the logs to identify the root cause. A deterministic engine classifies the risk (Low, Medium, High, Critical).
+3. **Automated Fix**: If the risk is categorized as "Low" and the AI confidence score is above 85%, Resolve AI automatically generates a code fix.
+4. **PR Generation**: Resolve AI creates a new branch, commits the fix, and opens a Pull Request on GitHub on behalf of the developer.
+5. **Notification**: Developers receive an email notification detailing the incident, the proposed fix, and a direct link to the PR.
+
+### 2. RAG System & Self-Learning Knowledge Base
+Resolve AI gets smarter over time by leveraging Retrieval-Augmented Generation (RAG):
+1. **Knowledge Extraction**: When an incident is resolved, the root cause and successful resolution are extracted.
+2. **Embedding**: The Groq embeddings API (`nomic-embed-text-v1_5`) converts the incident data into dense vector embeddings.
+3. **Vector Database**: These embeddings are stored securely in Supabase pgvector.
+4. **Contextual Retrieval**: During future failures, Resolve AI searches the pgvector database for similar past incidents using cosine similarity.
+5. **Augmented Prompting**: The historical context (how similar issues were fixed in the past) is injected into the LLM prompt, dramatically increasing the accuracy and confidence of the new diagnosis.
+
+---
+
+## Architecture
 
 ```
 GitHub Webhook → API Gateway → Lambda (WebhookReceiver)
@@ -46,7 +66,7 @@ GitHub Webhook → API Gateway → Lambda (WebhookReceiver)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 20+
@@ -108,7 +128,7 @@ VITE_API_URL=https://your-api-gateway-url/api npx vercel --prod
 
 ---
 
-## 💰 Cost — $0/month
+## Cost — $0/month
 
 | Service | Free Tier |
 |---------|-----------|
@@ -126,7 +146,7 @@ VITE_API_URL=https://your-api-gateway-url/api npx vercel --prod
 
 ---
 
-## 🎛️ Confidence Formula
+## Confidence Formula
 
 ```
 finalConfidence =
@@ -140,7 +160,7 @@ Auto-PR threshold: confidence ≥ 85 AND riskLevel = "low"
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 ai-incident-platform/
@@ -163,7 +183,7 @@ ai-incident-platform/
 
 ---
 
-## 🔐 GitHub Secrets Required
+## GitHub Secrets Required
 
 | Secret | Description |
 |--------|-------------|
@@ -188,7 +208,7 @@ ai-incident-platform/
 
 ---
 
-## 🧪 Local Development
+## Local Development
 
 ```bash
 # Backend (offline with serverless-offline)
@@ -209,18 +229,7 @@ npx serverless invoke local -f learningJob
 
 ---
 
-## 📧 Email Flow
-
-1. Workflow failure detected → `WebhookReceiver` → SQS
-2. `IncidentProcessor` runs AI pipeline
-3. If **low risk + ≥85% confidence** → PR created + email sent
-4. If **medium/high risk** → Email with diagnosis + one-click approve/reject
-5. Engineer clicks **"Approve Fix"** in email → `FeedbackHandler` redirects to dashboard + stores in KB
-6. Nightly → `LearningJob` embeds all resolved incidents into Supabase
-
----
-
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -241,6 +250,6 @@ npx serverless invoke local -f learningJob
 
 ---
 
-## 📄 License
+## License
 
 MIT
