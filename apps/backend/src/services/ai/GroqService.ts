@@ -29,6 +29,10 @@ Always respond with valid JSON matching this exact schema:
   "reasoning": "Brief explanation of your confidence level and risk assessment"
 }
 
+Important Instructions:
+1. If the failure is a test failure or code assertion failure (e.g. AssertionError, unittest, pytest), classify errorType as "test_failure".
+2. If there are Similar Past Resolutions or if the failure log suggests a clear code fix, you MUST generate the exact unified diff in the "fixDiff" field. Do not leave it empty.
+
 Risk level guidelines:
 - low: YAML/config indentation, missing npm package, typo in build script, doc changes
 - medium: Dockerfile changes, workflow restructuring, environment variable additions
